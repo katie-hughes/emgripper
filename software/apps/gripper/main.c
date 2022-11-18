@@ -29,13 +29,13 @@
 // Breakout pins 1 and 2
 // These are GPIO pin numbers that can be used in ADC configurations
 // AIN1 is breakout pin 1. AIN2 is breakout pin 2.
-#define ANALOG_TEMP_IN  NRF_SAADC_INPUT_AIN1
-#define ANALOG_LIGHT_IN NRF_SAADC_INPUT_AIN2
+#define ANALOG_FSR_IN NRF_SAADC_INPUT_AIN1
+#define ANALOG_EMG_IN NRF_SAADC_INPUT_AIN2
 
 // ADC channel configurations
 // These are ADC channel numbers that can be used in ADC calls
-#define ADC_TEMP_CHANNEL  0
-#define ADC_LIGHT_CHANNEL 1
+#define ADC_FSR_CHANNEL 0
+#define ADC_EMG_CHANNEL 1
 
 // Global variables
 APP_TIMER_DEF(sample_timer);
@@ -48,6 +48,8 @@ static float adc_sample_blocking(uint8_t channel);
 static void sample_timer_callback(void* _unused) {
   // Do things periodically here
   // TODO
+  float volts_fsr = adc_sample_blocking(ADC_FSR_CHANNEL);
+  printf("FSR Voltage: %f\n", volts_fsr);
 }
 
 static void saadc_event_callback(nrfx_saadc_evt_t const* _unused) {
@@ -59,11 +61,8 @@ static void gpio_init(void) {
   // Initialize output pins
   // TODO
 
-  // Set LEDs off initially
-  // TODO
-
   // Initialize input pin
-  // TODO
+  // nrf_gpio_pin_dir_set(SWITCH_IN, NRF_GPIO_PIN_DIR_INPUT);
 }
 
 static void adc_init(void) {
@@ -77,14 +76,14 @@ static void adc_init(void) {
   ret_code_t error_code = nrfx_saadc_init(&saadc_config, saadc_event_callback);
   APP_ERROR_CHECK(error_code);
 
-  // Initialize temperature sensor channel
-  nrf_saadc_channel_config_t temp_channel_config = NRFX_SAADC_DEFAULT_CHANNEL_CONFIG_SE(ANALOG_TEMP_IN);
-  error_code = nrfx_saadc_channel_init(ADC_TEMP_CHANNEL, &temp_channel_config);
+  // Initialize FSRerature sensor channel
+  nrf_saadc_channel_config_t FSR_channel_config = NRFX_SAADC_DEFAULT_CHANNEL_CONFIG_SE(ANALOG_FSR_IN);
+  error_code = nrfx_saadc_channel_init(ADC_FSR_CHANNEL, &FSR_channel_config);
   APP_ERROR_CHECK(error_code);
 
-  // Initialize light sensor channel
-  nrf_saadc_channel_config_t light_channel_config = NRFX_SAADC_DEFAULT_CHANNEL_CONFIG_SE(ANALOG_LIGHT_IN);
-  error_code = nrfx_saadc_channel_init(ADC_LIGHT_CHANNEL, &light_channel_config);
+  // Initialize EMG sensor channel
+  nrf_saadc_channel_config_t EMG_channel_config = NRFX_SAADC_DEFAULT_CHANNEL_CONFIG_SE(ANALOG_EMG_IN);
+  error_code = nrfx_saadc_channel_init(ADC_EMG_CHANNEL, &EMG_channel_config);
   APP_ERROR_CHECK(error_code);
 }
 
@@ -100,7 +99,7 @@ static float adc_sample_blocking(uint8_t channel) {
   // TODO
 
   // return voltage measurement
-  return 0.0;
+  return (adc_counts/4096.0*3.6); 
 }
 
 
