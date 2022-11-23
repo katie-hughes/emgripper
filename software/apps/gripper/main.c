@@ -10,6 +10,10 @@
 #include "app_timer.h"
 #include "nrf_delay.h"
 #include "nrfx_saadc.h"
+#include "nrf_twi_mngr.h"
+
+#include "lsm303agr.h"
+#include "app_timer.h"
 
 #include "microbit_v2.h"
 
