@@ -29,8 +29,8 @@
 // Breakout pins 1 and 2
 // These are GPIO pin numbers that can be used in ADC configurations
 // AIN1 is breakout pin 1. AIN2 is breakout pin 2.
-#define ANALOG_FSR_IN NRF_SAADC_INPUT_AIN1
-#define ANALOG_EMG_IN NRF_SAADC_INPUT_AIN2
+#define ANALOG_FSR_IN NRF_SAADC_INPUT_AIN2
+#define ANALOG_EMG_IN NRF_SAADC_INPUT_AIN1
 
 // ADC channel configurations
 // These are ADC channel numbers that can be used in ADC calls
@@ -48,8 +48,10 @@ static float adc_sample_blocking(uint8_t channel);
 static void sample_timer_callback(void* _unused) {
   // Do things periodically here
   // TODO
-  float volts_fsr = adc_sample_blocking(ADC_FSR_CHANNEL);
-  printf("FSR Voltage: %f\n", volts_fsr);
+  float volts_emg = adc_sample_blocking(ADC_EMG_CHANNEL);
+  printf("EMG Voltage: %f\n", volts_emg);
+  float volts_fsr = 100 * adc_sample_blocking(ADC_FSR_CHANNEL);
+  printf("100x FSR Voltage: %f\n", volts_fsr);
 }
 
 static void saadc_event_callback(nrfx_saadc_evt_t const* _unused) {
@@ -118,7 +120,7 @@ int main(void) {
 
   // start timer
   // change the rate to whatever you want
-  app_timer_start(sample_timer, 32768, NULL);
+  app_timer_start(sample_timer, 10000, NULL);
 
   // loop forever
   while (1) {
