@@ -17,17 +17,6 @@
 
 #include "microbit_v2.h"
 
-// Digital outputs
-// Breakout pins 13, 14, and 15
-// These are GPIO pin numbers that can be used in nrf_gpio_* calls
-#define LED_RED   EDGE_P13
-#define LED_GREEN EDGE_P14
-#define LED_BLUE  EDGE_P15
-
-// Digital inputs
-// Breakout pin 16
-// These are GPIO pin numbers that can be used in nrf_gpio_* calls
-#define SWITCH_IN EDGE_P16
 
 // Analog inputs
 // Breakout pins 1 and 2
@@ -45,13 +34,10 @@
 APP_TIMER_DEF(sample_timer);
 
 // Function prototypes
-static void gpio_init(void);
 static void adc_init(void);
 static float adc_sample_blocking(uint8_t channel);
 
 static void sample_timer_callback(void* _unused) {
-  // Do things periodically here
-  // TODO
   float volts_emg = adc_sample_blocking(ADC_EMG_CHANNEL);
   printf("EMG Voltage: %f\n", volts_emg);
   float volts_fsr = 100 * adc_sample_blocking(ADC_FSR_CHANNEL);
@@ -63,13 +49,6 @@ static void saadc_event_callback(nrfx_saadc_evt_t const* _unused) {
   // ignore this function
 }
 
-static void gpio_init(void) {
-  // Initialize output pins
-  // TODO
-
-  // Initialize input pin
-  // nrf_gpio_pin_dir_set(SWITCH_IN, NRF_GPIO_PIN_DIR_INPUT);
-}
 
 static void adc_init(void) {
   // Initialize the SAADC
@@ -122,8 +101,6 @@ int main(void) {
   i2c_config.interrupt_priority = 0;
   nrf_twi_mngr_init(&twi_mngr_instance, &i2c_config);
   
-  // initialize GPIO
-  gpio_init();
 
   // initialize ADC
   adc_init();
