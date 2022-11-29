@@ -39,9 +39,9 @@ static float adc_sample_blocking(uint8_t channel);
 
 static void sample_timer_callback(void* _unused) {
   float volts_emg = adc_sample_blocking(ADC_EMG_CHANNEL);
-  printf("EMG Voltage: %f\n", volts_emg);
+  // printf("EMG Voltage: %f\n", volts_emg);
   float volts_fsr = 100 * adc_sample_blocking(ADC_FSR_CHANNEL);
-  printf("100x FSR Voltage: %f\n", volts_fsr);
+  // printf("100x FSR Voltage: %f\n", volts_fsr);
 }
 
 static void saadc_event_callback(nrfx_saadc_evt_t const* _unused) {
@@ -92,15 +92,18 @@ static float adc_sample_blocking(uint8_t channel) {
 NRF_TWI_MNGR_DEF(twi_mngr_instance, 1, 0);
 
 int main(void) {
-  printf("Board started!\n");
+  printf("\n\nBoard started!\n");
 
   nrf_drv_twi_config_t i2c_config = NRF_DRV_TWI_DEFAULT_CONFIG;
   i2c_config.scl = I2C_SCL;
   i2c_config.sda = I2C_SDA;
   i2c_config.frequency = NRF_TWIM_FREQ_100K;
   i2c_config.interrupt_priority = 0;
+  printf("Calling Init\n");
   nrf_twi_mngr_init(&twi_mngr_instance, &i2c_config);
-  
+
+  // Initialize the LSM303AGR accelerometer/magnetometer sensor
+  lsm303agr_init(&twi_mngr_instance);
 
   // initialize ADC
   adc_init();
@@ -112,6 +115,10 @@ int main(void) {
   // start timer
   // change the rate to whatever you want
   app_timer_start(sample_timer, 10000, NULL);
+
+  set_servo_freq(512.0);
+
+  send_servo(100);
 
   // loop forever
   while (1) {

@@ -7,6 +7,7 @@
 // Chip addresses for accelerometer and magnetometer
 static const uint8_t LSM303AGR_ACC_ADDRESS = 0x19;
 static const uint8_t LSM303AGR_MAG_ADDRESS = 0x1E;
+static const uint8_t SERVO_ADDRESS = 0x40;
 
 // Measurement data type
 typedef struct {
@@ -80,6 +81,23 @@ typedef enum {
   LSM303AGR_MAG_OUT_Z_H_REG = 0X6D,
 } lsm303agr_mag_reg_t;
 
+// Register definitions for Servo Board
+typedef enum {
+  MODE1 = 0X00,
+  MODE2 = 0X01,
+  SUBADR1 = 0X02,
+  SUBADR2 = 0X03,
+  SUBADR3 = 0X04,
+  ALLCALLADR = 0X05,
+  LED0_ON_L = 0X06,
+  LED0_ON_H = 0X07,
+  LED0_OFF_L = 0X08,
+  LED0_OFF_H = 0X09,
+  PRE_SCALE = 0XFE,
+  TestMode = 0xFF,
+} servo_reg_t;
+// there are more registers, but I think we only care about LED0 (only 1 motor)
+
 // Function prototypes
 
 // Initialize and configure the LSM303AGR accelerometer/magnetometer
@@ -101,4 +119,8 @@ lsm303agr_measurement_t lsm303agr_read_accelerometer(void);
 //
 // Return measurements as floating point values in uT
 lsm303agr_measurement_t lsm303agr_read_magnetometer(void);
+
+void set_servo_freq(float freq);
+
+void send_servo(uint32_t val);
 

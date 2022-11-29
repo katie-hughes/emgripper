@@ -50,7 +50,7 @@ static void i2c_reg_write(uint8_t i2c_addr, uint8_t reg_addr, uint8_t data) {
   //TODO: implement me
   //Note: there should only be a single two-byte transfer to be performed
   uint8_t bytes[2] = {reg_addr, data};
-  printf("Bytes: %x %x \n", bytes[0], bytes[1]);
+  // printf("Bytes: %x %x \n", bytes[0], bytes[1]);
   nrf_twi_mngr_transfer_t const read_transfer[] = {
     //TODO: implement me
     NRF_TWI_MNGR_WRITE(i2c_addr, bytes, 2, 0),
@@ -63,49 +63,10 @@ static void i2c_reg_write(uint8_t i2c_addr, uint8_t reg_addr, uint8_t data) {
 // i2c - pointer to already initialized and enabled twim instance
 void lsm303agr_init(const nrf_twi_mngr_t* i2c) {
   i2c_manager = i2c;
+  // ---Initialize Servo Board---
+  uint8_t servo_read = i2c_reg_read(SERVO_ADDRESS, SUBADR1);
+  printf("Read Servo Subadr1 %x\n", servo_read);
 
-  // ---Initialize Accelerometer---
-
-  // Reboot acclerometer
-  i2c_reg_write(LSM303AGR_ACC_ADDRESS, LSM303AGR_ACC_CTRL_REG5, 0x80);
-  nrf_delay_ms(100); // needs delay to wait for reboot
-
-  // Enable Block Data Update
-  // Only updates sensor data when both halves of the data has been read
-  i2c_reg_write(LSM303AGR_ACC_ADDRESS, LSM303AGR_ACC_CTRL_REG4, 0x80);
-
-  // Configure accelerometer at 100Hz, normal mode (10-bit)
-  // Enable x, y and z axes
-  i2c_reg_write(LSM303AGR_ACC_ADDRESS, LSM303AGR_ACC_CTRL_REG1, 0x57);
-
-  // Read WHO AM I register
-  // Always returns the same value if working
-  uint8_t result = i2c_reg_read(LSM303AGR_ACC_ADDRESS, LSM303AGR_ACC_WHO_AM_I_REG);
-  //TODO: check the result of the Accelerometer WHO AM I register
-  printf("Who am I Acc: %x\n", result);
-
-  // ---Initialize Magnetometer---
-
-  // Reboot magnetometer
-  i2c_reg_write(LSM303AGR_MAG_ADDRESS, LSM303AGR_MAG_CFG_REG_A, 0x40);
-  nrf_delay_ms(100); // needs delay to wait for reboot
-
-  // Enable Block Data Update
-  // Only updates sensor data when both halves of the data has been read
-  i2c_reg_write(LSM303AGR_MAG_ADDRESS, LSM303AGR_MAG_CFG_REG_C, 0x10);
-
-  // Configure magnetometer at 100Hz, continuous mode
-  i2c_reg_write(LSM303AGR_MAG_ADDRESS, LSM303AGR_MAG_CFG_REG_A, 0x0C);
-
-  // Read WHO AM I register
-  result = i2c_reg_read(LSM303AGR_MAG_ADDRESS, LSM303AGR_MAG_WHO_AM_I_REG);
-  //TODO: check the result of the Magnetometer WHO AM I register
-  printf("Who am I Magnet: %x\n", result);
-
-  // ---Initialize Temperature---
-
-  // Enable temperature sensor
-  i2c_reg_write(LSM303AGR_ACC_ADDRESS, LSM303AGR_ACC_TEMP_CFG_REG, 0xC0);
 }
 
 // Read the internal temperature sensor
@@ -169,6 +130,29 @@ lsm303agr_measurement_t lsm303agr_read_magnetometer(void) {
   printf("Mag: (%f, %f, %f)\n", mag_x, mag_y, mag_z);
   lsm303agr_measurement_t measurement = {mag_x, mag_y, mag_z};
   return measurement;
+}
+
+void set_servo_freq(float freq){
+  // TODO: what is a good prescaler
+  uint8_t prescaler = (uint8_t) roundf(25000000.0f/(4096 *freq))-1;
+  printf("Write prescaler %d\n", prescaler);
+  i2c_reg_write(SERVO_ADDRESS, PRE_SCALE, prescaler);
+}
+
+void send_servo(uint32_t val){
+  printf("Send servo %ld (0x%lx)\n", val, val);
+  uint8_t pre = i2c_reg_read(SERVO_ADDRESS, PRE_SCALE);
+  printf("Prescaler is %d\n", pre);
+  // Do bitshifting
+  uint8_t byte1 = val&0xFF;
+  uint8_t byte2 = (val>>8)&0xFF;
+  uint8_t byte3 = (val>>16)&0xFF;
+  uint8_t byte4 = (val>>24)&0xFF;
+  printf("Bytes: %x %x %x %x", byte1, byte2, byte3, byte4);
+  i2c_reg_write(SERVO_ADDRESS, LED0_ON_L, byte1);
+  i2c_reg_write(SERVO_ADDRESS, LED0_ON_H, byte2);
+  i2c_reg_write(SERVO_ADDRESS, LED0_OFF_L, byte3);
+  i2c_reg_write(SERVO_ADDRESS, LED0_OFF_H, byte4);
 }
 
 
