@@ -71,7 +71,7 @@ void lsm303agr_init(const nrf_twi_mngr_t* i2c) {
   i2c_reg_write(SERVO_ADDRESS, MODE1, 0x10);
   printf("Brd tarted\n");
   // write to prescaler
-  float freq = 500;
+  float freq = 50;
   uint8_t prescaler = (uint8_t) roundf(25000000.0f/(4096 *freq))-1;
   printf("Write prescaler: %d\n", prescaler);
   i2c_reg_write(SERVO_ADDRESS, PRE_SCALE, prescaler);
@@ -145,17 +145,20 @@ lsm303agr_measurement_t lsm303agr_read_magnetometer(void) {
 }
 
 
-void send_servo(uint32_t angle){
-  printf("Send servo %ld (0x%lx)\n", angle, angle);
-  uint8_t pre = i2c_reg_read(SERVO_ADDRESS, PRE_SCALE);
-  printf("Prescaler is %d\n", pre);
-  uint8_t mode1 = i2c_reg_read(SERVO_ADDRESS, MODE1);
-  printf("Mode1 is %d\n", mode1);
-  uint8_t mode2 = i2c_reg_read(SERVO_ADDRESS, MODE2);
-  printf("Mode2 is %d\n", mode2);
+void send_servo(float duty_cycle){
+  // Duty cycle is the percent of time that servo is on.
+  // Must be between 0 and 100.
+  // EG: Input 10, duty cycle is 10%
+  printf("\nSend duty cycle %f\n", duty_cycle);
+  // uint8_t pre = i2c_reg_read(SERVO_ADDRESS, PRE_SCALE);
+  // printf("Prescaler is %d\n", pre);
+  // uint8_t mode1 = i2c_reg_read(SERVO_ADDRESS, MODE1);
+  // printf("Mode1 is %d\n", mode1);
+  // uint8_t mode2 = i2c_reg_read(SERVO_ADDRESS, MODE2);
+  // printf("Mode2 is %d\n", mode2);
   // Do bitshifting
   // we want angle from 0 to 180. Corresponds to 0-4096
-  uint16_t on = angle * (4096./180.);
+  uint16_t on = duty_cycle * (4096./100.);
   printf("On %d %x\n", on, on);
   uint16_t off = 4096 - on;
   printf("Off %d %x\n", off, off);

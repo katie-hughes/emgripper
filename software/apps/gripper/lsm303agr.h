@@ -120,5 +120,5 @@ lsm303agr_measurement_t lsm303agr_read_accelerometer(void);
 // Return measurements as floating point values in uT
 lsm303agr_measurement_t lsm303agr_read_magnetometer(void);
 
-void send_servo(uint32_t angle);
+void send_servo(float duty_cycle);
 
