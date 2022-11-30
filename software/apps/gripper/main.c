@@ -117,7 +117,11 @@ int main(void) {
   // change the rate to whatever you want
   app_timer_start(sample_timer, 10000, NULL);
 
-  send_servo(100);
+  send_servo(0);
+  nrf_delay_ms(1000);
+  send_servo(1);
+  nrf_delay_ms(1000);
+  send_servo(0);
 
   // loop forever
   while (1) {

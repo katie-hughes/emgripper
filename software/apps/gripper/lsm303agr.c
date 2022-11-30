@@ -154,15 +154,22 @@ void send_servo(uint32_t angle){
   uint8_t mode2 = i2c_reg_read(SERVO_ADDRESS, MODE2);
   printf("Mode2 is %d\n", mode2);
   // Do bitshifting
-  // uint8_t byte1 = val&0xFF;
-  // uint8_t byte2 = (val>>8)&0xFF;
-  // uint8_t byte3 = (val>>16)&0xFF;
-  // uint8_t byte4 = (val>>24)&0xFF;
-  // printf("Bytes: %x %x %x %x", byte1, byte2, byte3, byte4);
-  // i2c_reg_write(SERVO_ADDRESS, LED0_ON_L, byte1);
-  // i2c_reg_write(SERVO_ADDRESS, LED0_ON_H, byte2);
-  // i2c_reg_write(SERVO_ADDRESS, LED0_OFF_L, byte3);
-  // i2c_reg_write(SERVO_ADDRESS, LED0_OFF_H, byte4);
+  // we want angle from 0 to 180. Corresponds to 0-4096
+  uint16_t on = angle * (4096./180.);
+  printf("On %d %x\n", on, on);
+  uint16_t off = 4096 - on;
+  printf("Off %d %x\n", off, off);
+  uint8_t on_l = on&0xFF;
+  uint8_t on_h = (on>>8)&0xFF;
+  uint8_t off_l = off&0xFF;
+  uint8_t off_h = (off>>8)&0xFF;
+  printf("ON: %x %x\n", on_l, on_h);
+  printf("OFF: %x %x\n", off_l, off_h);
+  i2c_reg_write(SERVO_ADDRESS, LED0_ON_L, on_l);
+  i2c_reg_write(SERVO_ADDRESS, LED0_ON_H, on_h);
+  i2c_reg_write(SERVO_ADDRESS, LED0_OFF_L, off_l);
+  i2c_reg_write(SERVO_ADDRESS, LED0_OFF_H, off_h);
+  printf("DONE\n");
 }
 
 
