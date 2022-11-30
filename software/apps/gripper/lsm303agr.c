@@ -47,26 +47,38 @@ static float compute_phi(lsm303agr_measurement_t acc){
 // i2c_addr - address of the device to write to
 // reg_addr - address of the register within the device to write
 static void i2c_reg_write(uint8_t i2c_addr, uint8_t reg_addr, uint8_t data) {
-  //TODO: implement me
   //Note: there should only be a single two-byte transfer to be performed
   uint8_t bytes[2] = {reg_addr, data};
   // printf("Bytes: %x %x \n", bytes[0], bytes[1]);
-  nrf_twi_mngr_transfer_t const read_transfer[] = {
-    //TODO: implement me
+  nrf_twi_mngr_transfer_t const write_transfer[] = {
     NRF_TWI_MNGR_WRITE(i2c_addr, bytes, 2, 0),
   };
-  nrf_twi_mngr_perform(i2c_manager, NULL, read_transfer, 1, NULL);
+  nrf_twi_mngr_perform(i2c_manager, NULL, write_transfer, 1, NULL);
 }
 
 // Initialize and configure the LSM303AGR accelerometer/magnetometer
 //
 // i2c - pointer to already initialized and enabled twim instance
 void lsm303agr_init(const nrf_twi_mngr_t* i2c) {
+  printf("We are here\n");
   i2c_manager = i2c;
+  printf("stupid board\n");
   // ---Initialize Servo Board---
-  uint8_t servo_read = i2c_reg_read(SERVO_ADDRESS, SUBADR1);
-  printf("Read Servo Subadr1 %x\n", servo_read);
+  uint8_t mode1 = i2c_reg_read(SERVO_ADDRESS, MODE1);
+  printf("Mode1 is %d\n", mode1);
 
+  // put it to sleep
+  i2c_reg_write(SERVO_ADDRESS, MODE1, 0x10);
+  printf("Brd tarted\n");
+  // write to prescaler
+  float freq = 500;
+  uint8_t prescaler = (uint8_t) roundf(25000000.0f/(4096 *freq))-1;
+  printf("Write prescaler: %d\n", prescaler);
+  i2c_reg_write(SERVO_ADDRESS, PRE_SCALE, prescaler);
+  // wake it up
+  i2c_reg_write(SERVO_ADDRESS, MODE1, 0x80);
+  // ???? Totem pole
+  i2c_reg_write(SERVO_ADDRESS, MODE2, 0x04);
 }
 
 // Read the internal temperature sensor
@@ -132,27 +144,25 @@ lsm303agr_measurement_t lsm303agr_read_magnetometer(void) {
   return measurement;
 }
 
-void set_servo_freq(float freq){
-  // TODO: what is a good prescaler
-  uint8_t prescaler = (uint8_t) roundf(25000000.0f/(4096 *freq))-1;
-  printf("Write prescaler %d\n", prescaler);
-  i2c_reg_write(SERVO_ADDRESS, PRE_SCALE, prescaler);
-}
 
-void send_servo(uint32_t val){
-  printf("Send servo %ld (0x%lx)\n", val, val);
+void send_servo(uint32_t angle){
+  printf("Send servo %ld (0x%lx)\n", angle, angle);
   uint8_t pre = i2c_reg_read(SERVO_ADDRESS, PRE_SCALE);
   printf("Prescaler is %d\n", pre);
+  uint8_t mode1 = i2c_reg_read(SERVO_ADDRESS, MODE1);
+  printf("Mode1 is %d\n", mode1);
+  uint8_t mode2 = i2c_reg_read(SERVO_ADDRESS, MODE2);
+  printf("Mode2 is %d\n", mode2);
   // Do bitshifting
-  uint8_t byte1 = val&0xFF;
-  uint8_t byte2 = (val>>8)&0xFF;
-  uint8_t byte3 = (val>>16)&0xFF;
-  uint8_t byte4 = (val>>24)&0xFF;
-  printf("Bytes: %x %x %x %x", byte1, byte2, byte3, byte4);
-  i2c_reg_write(SERVO_ADDRESS, LED0_ON_L, byte1);
-  i2c_reg_write(SERVO_ADDRESS, LED0_ON_H, byte2);
-  i2c_reg_write(SERVO_ADDRESS, LED0_OFF_L, byte3);
-  i2c_reg_write(SERVO_ADDRESS, LED0_OFF_H, byte4);
+  // uint8_t byte1 = val&0xFF;
+  // uint8_t byte2 = (val>>8)&0xFF;
+  // uint8_t byte3 = (val>>16)&0xFF;
+  // uint8_t byte4 = (val>>24)&0xFF;
+  // printf("Bytes: %x %x %x %x", byte1, byte2, byte3, byte4);
+  // i2c_reg_write(SERVO_ADDRESS, LED0_ON_L, byte1);
+  // i2c_reg_write(SERVO_ADDRESS, LED0_ON_H, byte2);
+  // i2c_reg_write(SERVO_ADDRESS, LED0_OFF_L, byte3);
+  // i2c_reg_write(SERVO_ADDRESS, LED0_OFF_H, byte4);
 }
 
 

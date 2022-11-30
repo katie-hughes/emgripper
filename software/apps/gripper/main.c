@@ -95,13 +95,14 @@ int main(void) {
   printf("\n\nBoard started!\n");
 
   nrf_drv_twi_config_t i2c_config = NRF_DRV_TWI_DEFAULT_CONFIG;
-  i2c_config.scl = I2C_SCL;
-  i2c_config.sda = I2C_SDA;
+  i2c_config.scl = EDGE_P19;
+  i2c_config.sda = EDGE_P20;
   i2c_config.frequency = NRF_TWIM_FREQ_100K;
   i2c_config.interrupt_priority = 0;
   printf("Calling Init\n");
   nrf_twi_mngr_init(&twi_mngr_instance, &i2c_config);
-
+  printf("Hello?\n");
+  nrf_delay_ms(1000);
   // Initialize the LSM303AGR accelerometer/magnetometer sensor
   lsm303agr_init(&twi_mngr_instance);
 
@@ -115,8 +116,6 @@ int main(void) {
   // start timer
   // change the rate to whatever you want
   app_timer_start(sample_timer, 10000, NULL);
-
-  set_servo_freq(512.0);
 
   send_servo(100);
 
