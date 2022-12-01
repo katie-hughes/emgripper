@@ -117,11 +117,44 @@ int main(void) {
   // change the rate to whatever you want
   app_timer_start(sample_timer, 10000, NULL);
 
-  for(int i=0; i<50; i+=5){
-    // printf("DUTY CYCLE %d\n", i);
-    send_servo(i);
-    nrf_delay_ms(1000);
-  }
+  // for(int i=0; i<50; i+=5){
+  //   // printf("DUTY CYCLE %d\n", i);
+  //   send_servo(i);
+  //   nrf_delay_ms(1000);
+  // }
+  // for(int i=0; i<4096; i+=8){
+  //   // printf("DUTY CYCLE %d\n", i);
+  //   send_servo(i);
+  //   nrf_delay_ms(1000);
+  // }
+  // send_servo(8);
+  // nrf_delay_ms(1000);
+  // send_servo(0);
+  // nrf_delay_ms(1000);
+  send_servo(48);
+  nrf_delay_ms(1000);
+  send_servo(0);
+  nrf_delay_ms(100);
+  send_servo(40);
+  nrf_delay_ms(80);
+    send_servo(0);
+  nrf_delay_ms(100);
+  send_servo(40);
+  nrf_delay_ms(80);
+  send_servo(0);
+  nrf_delay_ms(100);
+    send_servo(40);
+  nrf_delay_ms(80);
+    send_servo(0);
+  nrf_delay_ms(100);
+  send_servo(40);
+  nrf_delay_ms(80);
+    send_servo(0);
+  nrf_delay_ms(100);
+    send_servo(40);
+  nrf_delay_ms(80);
+  // send_servo(40);
+  // nrf_delay_ms(1000);
   send_servo(0);
   nrf_delay_ms(1000);
   // loop forever

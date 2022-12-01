@@ -146,6 +146,10 @@ lsm303agr_measurement_t lsm303agr_read_magnetometer(void) {
 
 
 void send_servo(float duty_cycle){
+  // Servo pulse width range is 900-1200 us
+  // Pulse cycle is 20 ms
+  //Duty cycle = PW * freq
+
   // Duty cycle is the percent of time that servo is on.
   // Must be between 0 and 100.
   // EG: Input 10, duty cycle is 10%
@@ -158,20 +162,22 @@ void send_servo(float duty_cycle){
   // printf("Mode2 is %d\n", mode2);
   // Do bitshifting
   // we want angle from 0 to 180. Corresponds to 0-4096
-  uint16_t on = duty_cycle * (4096./100.);
-  printf("On %d %x\n", on, on);
-  uint16_t off = 4096 - on;
-  printf("Off %d %x\n", off, off);
-  uint8_t on_l = on&0xFF;
-  uint8_t on_h = (on>>8)&0xFF;
-  uint8_t off_l = off&0xFF;
-  uint8_t off_h = (off>>8)&0xFF;
-  printf("ON: %x %x\n", on_l, on_h);
-  printf("OFF: %x %x\n", off_l, off_h);
-  i2c_reg_write(SERVO_ADDRESS, LED0_ON_L, on_l);
-  i2c_reg_write(SERVO_ADDRESS, LED0_ON_H, on_h);
-  i2c_reg_write(SERVO_ADDRESS, LED0_OFF_L, off_l);
-  i2c_reg_write(SERVO_ADDRESS, LED0_OFF_H, off_h);
+  //for (uint8_t pwmnum=0; pwmnum < 16; pwmnum++) {
+    uint16_t on = duty_cycle * (4096./100.);
+    printf("On %d %x\n", on, on);
+    uint16_t off = 4096 - on;
+    printf("Off %d %x\n", off, off);
+    uint8_t on_l = on&0xFF;
+    uint8_t on_h = (on>>8)&0xFF;
+    uint8_t off_l = off&0xFF;
+    uint8_t off_h = (off>>8)&0xFF;
+    printf("ON: %x %x\n", on_l, on_h);
+    printf("OFF: %x %x\n", off_l, off_h);
+    i2c_reg_write(SERVO_ADDRESS, LED0_ON_L, on_l);
+    i2c_reg_write(SERVO_ADDRESS, LED0_ON_H, on_h);
+    i2c_reg_write(SERVO_ADDRESS, LED0_OFF_L, off_l);
+    i2c_reg_write(SERVO_ADDRESS, LED0_OFF_H, off_h);
+  //}
   printf("DONE\n");
 }
 
