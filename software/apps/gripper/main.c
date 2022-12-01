@@ -32,16 +32,36 @@
 
 // Global variables
 APP_TIMER_DEF(sample_timer);
+float volts_fsr = 0.0;
+float volts_emg = 0.0;
 
 // Function prototypes
 static void adc_init(void);
 static float adc_sample_blocking(uint8_t channel);
 
 static void sample_timer_callback(void* _unused) {
-  float volts_emg = adc_sample_blocking(ADC_EMG_CHANNEL);
-  // printf("EMG Voltage: %f\n", volts_emg);
-  float volts_fsr = 100 * adc_sample_blocking(ADC_FSR_CHANNEL);
-  // printf("100x FSR Voltage: %f\n", volts_fsr);
+  volts_emg = adc_sample_blocking(ADC_EMG_CHANNEL);
+  //printf("EMG Voltage: %f\n", volts_emg);
+  volts_fsr = 100 * adc_sample_blocking(ADC_FSR_CHANNEL);
+  //printf("100x FSR Voltage: %f\n", volts_fsr);
+
+    if (volts_emg > 2.0){ //If gripping close gripper 
+      //printf("Grippy");
+      if (volts_fsr > 30.0){ // If grasping, stop moving
+            send_servo(0);
+          nrf_delay_ms(100);}
+      else{
+      send_servo(40);
+      nrf_delay_ms(100);
+      send_servo(0);
+      nrf_delay_ms(100);}
+    }
+    else {
+      send_servo(48);
+      nrf_delay_ms(100);
+      send_servo(0);
+      nrf_delay_ms(100);
+    }
 }
 
 static void saadc_event_callback(nrfx_saadc_evt_t const* _unused) {
@@ -133,26 +153,26 @@ int main(void) {
   // nrf_delay_ms(1000);
   send_servo(48);
   nrf_delay_ms(1000);
-  send_servo(0);
-  nrf_delay_ms(100);
-  send_servo(40);
-  nrf_delay_ms(80);
-    send_servo(0);
-  nrf_delay_ms(100);
-  send_servo(40);
-  nrf_delay_ms(80);
-  send_servo(0);
-  nrf_delay_ms(100);
-    send_servo(40);
-  nrf_delay_ms(80);
-    send_servo(0);
-  nrf_delay_ms(100);
-  send_servo(40);
-  nrf_delay_ms(80);
-    send_servo(0);
-  nrf_delay_ms(100);
-    send_servo(40);
-  nrf_delay_ms(80);
+  // send_servo(0);
+  // nrf_delay_ms(100);
+  // send_servo(40);
+  // nrf_delay_ms(80);
+  //   send_servo(0);
+  // nrf_delay_ms(100);
+  // send_servo(40);
+  // nrf_delay_ms(80);
+  // send_servo(0);
+  // nrf_delay_ms(100);
+  //   send_servo(40);
+  // nrf_delay_ms(80);
+  //   send_servo(0);
+  // nrf_delay_ms(100);
+  // send_servo(40);
+  // nrf_delay_ms(80);
+  //   send_servo(0);
+  // nrf_delay_ms(100);
+  //   send_servo(40);
+  // nrf_delay_ms(80);
   // send_servo(40);
   // nrf_delay_ms(1000);
   send_servo(0);
@@ -160,6 +180,17 @@ int main(void) {
   // loop forever
   while (1) {
     // Don't put any code in here. Instead put periodic code in `sample_timer_callback()`
+    // if (volts_emg > 1.0){ //If gripping close gripper 
+    //   //printf("Grippy");
+    //   if (volts_fsr > 30.0){ // If grasping, stop moving
+    //   send_servo(40);
+    //   nrf_delay_ms(80);
+    //   send_servo(0);
+    //   nrf_delay_ms(100);
+    // }}
+    // else {
+
+    // }
     nrf_delay_ms(1000);
   }
 }
