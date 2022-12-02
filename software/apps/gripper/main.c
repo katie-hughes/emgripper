@@ -12,7 +12,7 @@
 #include "nrfx_saadc.h"
 #include "nrf_twi_mngr.h"
 
-#include "lsm303agr.h"
+#include "pca9685.h"
 #include "app_timer.h"
 
 #include "microbit_v2.h"
@@ -35,32 +35,38 @@ APP_TIMER_DEF(sample_timer);
 float volts_fsr = 0.0;
 float volts_emg = 0.0;
 
+float fsr_threshold = 250.0;
+float emg_threshold = 2.0;
+
 // Function prototypes
 static void adc_init(void);
 static float adc_sample_blocking(uint8_t channel);
 
 static void sample_timer_callback(void* _unused) {
   volts_emg = adc_sample_blocking(ADC_EMG_CHANNEL);
-  //printf("EMG Voltage: %f\n", volts_emg);
-  volts_fsr = 100 * adc_sample_blocking(ADC_FSR_CHANNEL);
-  //printf("100x FSR Voltage: %f\n", volts_fsr);
-
-    if (volts_emg > 2.0){ //If gripping close gripper 
-      //printf("Grippy");
-      if (volts_fsr > 30.0){ // If grasping, stop moving
-            send_servo(0);
-          nrf_delay_ms(100);}
-      else{
-      send_servo(40);
-      nrf_delay_ms(100);
-      send_servo(0);
-      nrf_delay_ms(100);}
-    }
-    else {
+  printf("EMG Voltage: %f\n", volts_emg);
+  volts_fsr = 100*adc_sample_blocking(ADC_FSR_CHANNEL);
+  printf("100x FSR Voltage: %f\n", volts_fsr);
+    if(volts_emg > emg_threshold){
+      // flexing
+      if(volts_fsr > fsr_threshold){ // If grasping, stop moving
+        printf("Grip but stop\n");
+        send_servo(0);
+        nrf_delay_ms(100);
+      }else{
+        printf("Grip!\n");
+        send_servo(40);
+        nrf_delay_ms(100);
+        // send_servo(0);
+        // nrf_delay_ms(100);
+      }
+    }else{
+      // Not flexing
+      printf("Release\n");
       send_servo(48);
       nrf_delay_ms(100);
-      send_servo(0);
-      nrf_delay_ms(100);
+      // send_servo(0);
+      // nrf_delay_ms(100);
     }
 }
 
@@ -98,15 +104,9 @@ static float adc_sample_blocking(uint8_t channel) {
   int16_t adc_counts = 0;
   ret_code_t error_code = nrfx_saadc_sample_convert(channel, &adc_counts);
   APP_ERROR_CHECK(error_code);
-
-  // convert ADC counts to volts
-  // 12-bit ADC with range from 0 to 3.6 Volts
-  // TODO
-
   // return voltage measurement
   return (adc_counts/4096.0*3.6); 
 }
-
 
 // Global variables
 NRF_TWI_MNGR_DEF(twi_mngr_instance, 1, 0);
@@ -137,60 +137,13 @@ int main(void) {
   // change the rate to whatever you want
   app_timer_start(sample_timer, 10000, NULL);
 
-  // for(int i=0; i<50; i+=5){
-  //   // printf("DUTY CYCLE %d\n", i);
-  //   send_servo(i);
-  //   nrf_delay_ms(1000);
-  // }
-  // for(int i=0; i<4096; i+=8){
-  //   // printf("DUTY CYCLE %d\n", i);
-  //   send_servo(i);
-  //   nrf_delay_ms(1000);
-  // }
-  // send_servo(8);
-  // nrf_delay_ms(1000);
-  // send_servo(0);
-  // nrf_delay_ms(1000);
   send_servo(48);
   nrf_delay_ms(1000);
-  // send_servo(0);
-  // nrf_delay_ms(100);
-  // send_servo(40);
-  // nrf_delay_ms(80);
-  //   send_servo(0);
-  // nrf_delay_ms(100);
-  // send_servo(40);
-  // nrf_delay_ms(80);
-  // send_servo(0);
-  // nrf_delay_ms(100);
-  //   send_servo(40);
-  // nrf_delay_ms(80);
-  //   send_servo(0);
-  // nrf_delay_ms(100);
-  // send_servo(40);
-  // nrf_delay_ms(80);
-  //   send_servo(0);
-  // nrf_delay_ms(100);
-  //   send_servo(40);
-  // nrf_delay_ms(80);
-  // send_servo(40);
-  // nrf_delay_ms(1000);
+
   send_servo(0);
   nrf_delay_ms(1000);
   // loop forever
   while (1) {
-    // Don't put any code in here. Instead put periodic code in `sample_timer_callback()`
-    // if (volts_emg > 1.0){ //If gripping close gripper 
-    //   //printf("Grippy");
-    //   if (volts_fsr > 30.0){ // If grasping, stop moving
-    //   send_servo(40);
-    //   nrf_delay_ms(80);
-    //   send_servo(0);
-    //   nrf_delay_ms(100);
-    // }}
-    // else {
-
-    // }
     nrf_delay_ms(1000);
   }
 }

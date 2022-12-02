@@ -6,7 +6,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "lsm303agr.h"
+#include "pca9685.h"
 #include "nrf_delay.h"
 #include <math.h>
 
@@ -60,12 +60,12 @@ static void i2c_reg_write(uint8_t i2c_addr, uint8_t reg_addr, uint8_t data) {
 //
 // i2c - pointer to already initialized and enabled twim instance
 void lsm303agr_init(const nrf_twi_mngr_t* i2c) {
-  printf("We are here\n");
+  // printf("We are here\n");
   i2c_manager = i2c;
-  printf("stupid board\n");
+  // printf("stupid board\n");
   // ---Initialize Servo Board---
   uint8_t mode1 = i2c_reg_read(SERVO_ADDRESS, MODE1);
-  printf("Mode1 is %d\n", mode1);
+  // printf("Mode1 is %d\n", mode1);
 
   // put it to sleep
   i2c_reg_write(SERVO_ADDRESS, MODE1, 0x10);
@@ -73,75 +73,12 @@ void lsm303agr_init(const nrf_twi_mngr_t* i2c) {
   // write to prescaler
   float freq = 50;
   uint8_t prescaler = (uint8_t) roundf(25000000.0f/(4096 *freq))-1;
-  printf("Write prescaler: %d\n", prescaler);
+  // printf("Write prescaler: %d\n", prescaler);
   i2c_reg_write(SERVO_ADDRESS, PRE_SCALE, prescaler);
   // wake it up
   i2c_reg_write(SERVO_ADDRESS, MODE1, 0x80);
   // ???? Totem pole
   i2c_reg_write(SERVO_ADDRESS, MODE2, 0x04);
-}
-
-// Read the internal temperature sensor
-//
-// Return measurement as floating point value in degrees C
-float lsm303agr_read_temperature(void) {
-  //TODO: implement me
-  uint8_t res_L = i2c_reg_read(LSM303AGR_ACC_ADDRESS, LSM303AGR_ACC_TEMP_L);
-  uint8_t res_H = i2c_reg_read(LSM303AGR_ACC_ADDRESS, LSM303AGR_ACC_TEMP_H);
-  // printf("ResL: %x\n", res_L);
-  // printf("ResH: %x\n", res_H);
-  uint16_t res = (res_H<<8) | res_L; 
-  // printf("res: %x\n", res);
-  float temp = ((float)((int16_t)res))/256. + 25.0;
-  return temp;
-}
-
-lsm303agr_measurement_t lsm303agr_read_accelerometer(void) {
-  //TODO: implement me
-  uint8_t x_L = i2c_reg_read(LSM303AGR_ACC_ADDRESS, LSM303AGR_ACC_OUT_X_L);
-  uint8_t x_H = i2c_reg_read(LSM303AGR_ACC_ADDRESS, LSM303AGR_ACC_OUT_X_H);
-  uint8_t y_L = i2c_reg_read(LSM303AGR_ACC_ADDRESS, LSM303AGR_ACC_OUT_Y_L);
-  uint8_t y_H = i2c_reg_read(LSM303AGR_ACC_ADDRESS, LSM303AGR_ACC_OUT_Y_H);
-  uint8_t z_L = i2c_reg_read(LSM303AGR_ACC_ADDRESS, LSM303AGR_ACC_OUT_Z_L);
-  uint8_t z_H = i2c_reg_read(LSM303AGR_ACC_ADDRESS, LSM303AGR_ACC_OUT_Z_H);
-  // printf("X: %x, %x\n", x_L, x_H);
-  // printf("Y: %x, %x\n", y_L, y_H);
-  // printf("X: %x, %x\n", z_L, z_H);
-  uint16_t res_x = (x_H<<8) | x_L;
-  uint16_t res_y = (y_H<<8) | y_L;
-  uint16_t res_z = (z_H<<8) | z_L;
-  int16_t new_x = ((int16_t)res_x) >> 6;
-  int16_t new_y = ((int16_t)res_y) >> 6;
-  int16_t new_z = ((int16_t)res_z) >> 6;
-  float scaling = 3.9;
-  float acc_x = scaling*new_x/1000.;
-  float acc_y = scaling*new_y/1000.;
-  float acc_z = scaling*new_z/1000.;
-  printf("Acc: (%f, %f, %f)\n", acc_x, acc_y, acc_z);
-  lsm303agr_measurement_t measurement = {acc_x, acc_y, acc_z};
-  float phi = compute_phi(measurement);
-  printf("Phi: %f\n", phi);
-  return measurement;
-}
-
-lsm303agr_measurement_t lsm303agr_read_magnetometer(void) {
-  //TODO: implement me
-  uint8_t x_L = i2c_reg_read(LSM303AGR_MAG_ADDRESS, LSM303AGR_MAG_OUT_X_L_REG);
-  uint8_t x_H = i2c_reg_read(LSM303AGR_MAG_ADDRESS, LSM303AGR_MAG_OUT_X_H_REG);
-  uint8_t y_L = i2c_reg_read(LSM303AGR_MAG_ADDRESS, LSM303AGR_MAG_OUT_Y_L_REG);
-  uint8_t y_H = i2c_reg_read(LSM303AGR_MAG_ADDRESS, LSM303AGR_MAG_OUT_Y_H_REG);
-  uint8_t z_L = i2c_reg_read(LSM303AGR_MAG_ADDRESS, LSM303AGR_MAG_OUT_Z_L_REG);
-  uint8_t z_H = i2c_reg_read(LSM303AGR_MAG_ADDRESS, LSM303AGR_MAG_OUT_Z_H_REG);
-  uint16_t res_x = (x_H<<8) | x_L;
-  uint16_t res_y = (y_H<<8) | y_L;
-  uint16_t res_z = (z_H<<8) | z_L;
-  float scaling = 1.5;
-  float mag_x = scaling*((int16_t)res_x)/1000.;
-  float mag_y = scaling*((int16_t)res_y)/1000.;
-  float mag_z = scaling*((int16_t)res_z)/1000.;
-  printf("Mag: (%f, %f, %f)\n", mag_x, mag_y, mag_z);
-  lsm303agr_measurement_t measurement = {mag_x, mag_y, mag_z};
-  return measurement;
 }
 
 
@@ -153,7 +90,7 @@ void send_servo(float duty_cycle){
   // Duty cycle is the percent of time that servo is on.
   // Must be between 0 and 100.
   // EG: Input 10, duty cycle is 10%
-  printf("\nSend duty cycle %f\n", duty_cycle);
+  // printf("\nSend duty cycle %f\n", duty_cycle);
   // uint8_t pre = i2c_reg_read(SERVO_ADDRESS, PRE_SCALE);
   // printf("Prescaler is %d\n", pre);
   // uint8_t mode1 = i2c_reg_read(SERVO_ADDRESS, MODE1);
@@ -164,21 +101,19 @@ void send_servo(float duty_cycle){
   // we want angle from 0 to 180. Corresponds to 0-4096
   //for (uint8_t pwmnum=0; pwmnum < 16; pwmnum++) {
     uint16_t on = duty_cycle * (4096./100.);
-    printf("On %d %x\n", on, on);
+    // printf("On %d %x\n", on, on);
     uint16_t off = 4096 - on;
-    printf("Off %d %x\n", off, off);
+    // printf("Off %d %x\n", off, off);
     uint8_t on_l = on&0xFF;
     uint8_t on_h = (on>>8)&0xFF;
     uint8_t off_l = off&0xFF;
     uint8_t off_h = (off>>8)&0xFF;
-    printf("ON: %x %x\n", on_l, on_h);
-    printf("OFF: %x %x\n", off_l, off_h);
+    // printf("ON: %x %x\n", on_l, on_h);
+    // printf("OFF: %x %x\n", off_l, off_h);
     i2c_reg_write(SERVO_ADDRESS, LED0_ON_L, on_l);
     i2c_reg_write(SERVO_ADDRESS, LED0_ON_H, on_h);
     i2c_reg_write(SERVO_ADDRESS, LED0_OFF_L, off_l);
     i2c_reg_write(SERVO_ADDRESS, LED0_OFF_H, off_h);
-  //}
-  printf("DONE\n");
 }
 
 
