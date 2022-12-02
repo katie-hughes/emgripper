@@ -32,16 +32,6 @@ static uint8_t i2c_reg_read(uint8_t i2c_addr, uint8_t reg_addr) {
   return rx_buf;
 }
 
-static float compute_phi(lsm303agr_measurement_t acc){
-  float ax = acc.x_axis;
-  float ay = acc.y_axis;
-  float az = acc.z_axis;
-  float sum = (ax*ax) + (ay*ay);
-  float sqt = sqrt(sum);
-  float res = atan((sqt)/az);
-  return res*180./3.14159265358979;
-}
-
 // Helper function to perform a 1-byte I2C write of a given register
 //
 // i2c_addr - address of the device to write to
@@ -56,20 +46,16 @@ static void i2c_reg_write(uint8_t i2c_addr, uint8_t reg_addr, uint8_t data) {
   nrf_twi_mngr_perform(i2c_manager, NULL, write_transfer, 1, NULL);
 }
 
-// Initialize and configure the LSM303AGR accelerometer/magnetometer
+// Initialize and configure the PCA9685 board
 //
 // i2c - pointer to already initialized and enabled twim instance
-void lsm303agr_init(const nrf_twi_mngr_t* i2c) {
+void pca9685_init(const nrf_twi_mngr_t* i2c) {
   // printf("We are here\n");
   i2c_manager = i2c;
   // printf("stupid board\n");
   // ---Initialize Servo Board---
-  uint8_t mode1 = i2c_reg_read(SERVO_ADDRESS, MODE1);
-  // printf("Mode1 is %d\n", mode1);
-
   // put it to sleep
   i2c_reg_write(SERVO_ADDRESS, MODE1, 0x10);
-  printf("Brd tarted\n");
   // write to prescaler
   float freq = 50;
   uint8_t prescaler = (uint8_t) roundf(25000000.0f/(4096 *freq))-1;
@@ -115,6 +101,3 @@ void send_servo(float duty_cycle){
     i2c_reg_write(SERVO_ADDRESS, LED0_OFF_L, off_l);
     i2c_reg_write(SERVO_ADDRESS, LED0_OFF_H, off_h);
 }
-
-
-

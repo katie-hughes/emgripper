@@ -149,7 +149,7 @@ int main(void) {
   printf("Hello?\n");
   nrf_delay_ms(1000);
   // Initialize the LSM303AGR accelerometer/magnetometer sensor
-  lsm303agr_init(&twi_mngr_instance);
+  pca9685_init(&twi_mngr_instance);
 
   // initialize ADC
   adc_init();
