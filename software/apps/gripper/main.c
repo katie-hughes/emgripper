@@ -35,8 +35,12 @@ APP_TIMER_DEF(sample_timer);
 float volts_fsr = 0.0;
 float volts_emg = 0.0;
 
-float fsr_threshold = 250.0;
-float emg_threshold = 2.0;
+float fsr_threshold = 150.0;
+float emg_threshold = 1.0;
+
+uint16_t counter_grip = 0;
+uint16_t counter_release = 0;
+uint16_t counter_threshold = 10;
 
 // Function prototypes
 static void adc_init(void);
@@ -44,30 +48,51 @@ static float adc_sample_blocking(uint8_t channel);
 
 static void sample_timer_callback(void* _unused) {
   volts_emg = adc_sample_blocking(ADC_EMG_CHANNEL);
-  printf("EMG Voltage: %f\n", volts_emg);
+  printf("\nEMG Voltage: %f\n", volts_emg);
   volts_fsr = 100*adc_sample_blocking(ADC_FSR_CHANNEL);
   printf("100x FSR Voltage: %f\n", volts_fsr);
     if(volts_emg > emg_threshold){
       // flexing
       if(volts_fsr > fsr_threshold){ // If grasping, stop moving
-        printf("Grip but stop\n");
+        counter_release = 0;
+        counter_grip = 0;
+        printf("FSR overpowered grip\n");
         send_servo(0);
         nrf_delay_ms(100);
       }else{
-        printf("Grip!\n");
-        send_servo(40);
-        nrf_delay_ms(100);
-        // send_servo(0);
-        // nrf_delay_ms(100);
+        counter_release = 0;
+        counter_grip++;
+        if(counter_grip > counter_threshold){
+          printf("STOP Gripping!!\n");
+          // STOP so we don't overexert gripper
+          send_servo(0);
+          nrf_delay_ms(100);
+        }else{
+          // Close gripper
+          printf("Grip!\n");
+          send_servo(40);
+          nrf_delay_ms(100);
+        }
       }
     }else{
       // Not flexing
-      printf("Release\n");
-      send_servo(48);
-      nrf_delay_ms(100);
+      counter_grip = 0;
+      counter_release++;
+        if(counter_release > counter_threshold){
+          // STOP so we don't overexert gripper
+          printf("STOP RELEASING!!!\n");
+          send_servo(0);
+          nrf_delay_ms(100);
+        }else{
+          // Open gripper
+          printf("Release\n");
+          send_servo(48);
+          nrf_delay_ms(100);
+        }
       // send_servo(0);
       // nrf_delay_ms(100);
     }
+    // Figure out a way to send_servo(0) when nothing is happening. Othewise motor overheats.
 }
 
 static void saadc_event_callback(nrfx_saadc_evt_t const* _unused) {
