@@ -1,6 +1,5 @@
-Breadboard App
+Gripper
 ==============
 
-Interact with breadboard circuits using the Microbit. Use sensors on a
-breadboard to control an RGB LED on the breadboard.
+Control a servo motor based on EMG and FSR signals.
 
