@@ -1,3 +1,6 @@
+# EMG Gripper
+The code is located in software/apps/gripper
+
 # Northwestern Micro:bit v2 Base
 
 Starter code for Northwestern course CE346 based on Micro:bit v2.
